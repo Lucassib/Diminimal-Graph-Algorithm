@@ -23,14 +23,7 @@ def hierarchy_pos(G, root=None, width=1., vert_gap = 0.2, vert_loc = 0, xcenter 
             root = random.choice(list(G.nodes))
 
     def _hierarchy_pos(G, root, width=1., vert_gap = 0.2, vert_loc = 0, xcenter = 0.5, pos = None, parent = None):
-        '''
-        see hierarchy_pos docstring for most arguments
 
-        pos: a dict saying where all nodes go if they have been assigned
-        parent: parent of this branch. - only affects it if non-directed
-
-        '''
-    
         if pos is None:
             pos = {root:(xcenter,vert_loc)}
         else:
@@ -74,6 +67,7 @@ def copy_graph(T,delta):
 def recompute_edges(T,edge_weight):
     T["0"]['T1{}0'.format(max(0,nx.diameter(T)-2))]['weight'] = edge_weight
     return T
+
 def get_ordered_vertices(T,root):
     
     lst=[[root]]
@@ -93,6 +87,7 @@ def get_ordered_vertices(T,root):
         lst.append(new_lst)
 
     return lst
+
 def compute_v0(T,_lambda_,root):
 
     a = get_ordered_vertices(T,root)
@@ -120,8 +115,10 @@ def compute_v0(T,_lambda_,root):
                     summation += (congruent_T[vertex][child]['weight'])**2/weights[child]
                 congruent_T.nodes.data()[vertex]['weight'] -= summation 
 
-
     return nx.get_node_attributes(congruent_T,'weight')[root]
+
+    
+
 def get_subgraphs(T):
     leafs = []
     _ = [leafs.append(vertex[0]) for vertex in T.degree() if vertex[1]==1]
@@ -160,7 +157,6 @@ def rearrange_edges(T,value,subgraph_vertices,free_edges,root=0):
     H =  T.subgraph(subgraph_vertices).copy()
 
     H.remove_edge(root,free_edges[0])
-    #H.remove_edge(root,free_edges[1])
     S = [H.subgraph(subset).copy() for subset in nx.connected_components(H)]
     for i in range(2):
         if "0" in S[i].nodes:
@@ -173,7 +169,6 @@ def rearrange_edges(T,value,subgraph_vertices,free_edges,root=0):
 
     edge_weight = ((a_v0*a_v1))**(1/2)
     T["0"][free_edges[0]]['weight'] = edge_weight
-    #T[0][free_edges[1]]['weight'] = edge_weight
 
     return T
 def find_realization(alpha=0,beta=64,k=2):
@@ -219,8 +214,6 @@ def find_realization(alpha=0,beta=64,k=2):
             eigenlist_alpha = sorted(list(set(list(np.unique(compute_eigenvalues(_T_alpha_)[1]))+list(np.unique(compute_eigenvalues(_T_alpha_aux_)[1])))))
             list_values[1].insert(0,max(eigenlist_alpha))
             eigenlist_beta = sorted(list(set(list(np.unique(compute_eigenvalues(_T_beta_)[1]))+list(np.unique(compute_eigenvalues(_T_beta_aux_)[1])))))
-            #eigenlist_alpha = np.unique(compute_eigenvalues(_T_alpha_)[1])
-            #eigenlist_beta = np.unique(compute_eigenvalues(_T_beta_)[1])
             list_values[0].insert(0,min(eigenlist_beta))
 
 
@@ -346,17 +339,19 @@ if 'graph' in st.session_state:
         nx.draw(M1,pos=pos,with_labels=True, node_color='white', edgecolors='black',font_color="black",node_size=600)
         st.pyplot(fig)
 
+    spec = compute_eigenvalues(M1)[1]
     dspec = np.unique(compute_eigenvalues(M1)[1])
+    multiplicities = dict(Counter(spec))
 
     distinct_spectrum = ""
-    for eigenvalue in dspec:
+    for eigenvalue in np.unique(spec):
         if eigenvalue.is_integer():
-            distinct_spectrum += "{}, ".format(int(eigenvalue))
+            distinct_spectrum += "${}^{{[{}]}}$, ".format(int(eigenvalue),multiplicities[eigenvalue])
         else:
-            distinct_spectrum += "{}, ".format(eigenvalue)
+            distinct_spectrum += "${}^{{[{}]}}$, ".format(eigenvalue,multiplicities[eigenvalue])
 
     distinct_spectrum = distinct_spectrum[:-2]
-    st.header("DSpec(M1)={{{}}}, |DSpec(M1)|={}".format(distinct_spectrum,len(dspec)))
+    st.subheader("$Spec(M1)=${{{}}}, $|DSpec(M1)|={}$".format(distinct_spectrum,len(dspec)))
 
 
 
